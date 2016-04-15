@@ -1,54 +1,65 @@
-import sys
-import re
+DECISION_VAR_LIST=[]
 
-lines = [line.rstrip('\r\n') for line in
-         open('C:\Users\Atreya\PycharmProjects\Bayesian_NW\HW3_samples_updated\HW3_samples\sample01.txt')]
-bn = {}
-startLine = ""
-Part0 = ""
-Part1 = ""
-bnObj = {}
-parents = []
-TruthMaps = {}
-i = 0
-j = 0
-for line in lines:
+def read_file_data(file_handler):
+    queries = []
+    all_vars = []
+    utility = []
+    while True:
+        query_str = str(file_handler.readline().rstrip())
+        if query_str == "******":
+            break
+        queries.append(query_str)
 
-    line = ' '.join(line.split())
-    line = line.rstrip("\r\n")
-    # sys.stdout.write(line)
-    if line.find("*") == 0 or len(startLine) != 0 or j > 0:
-        # facts[j]=line
-        if len(startLine) == 0 and j == 1:
-            startLine = line.split("|")[0]  # check if j=1 on line.split("|")[0]
-        if line.find("*") == 0:  # j=1
-            if len(startLine) != 0:
-                parentArray = [parents, TruthMaps]  # Check if these shud be there here only if startLine!=""
-                bnObj[startLine.split(" | ")[0]] = [parentArray]
-            j = 0
-            # facts=[]
-            startLine = ""
-            parents = []
+    bayes_network = {}
+    while True:
+        line = str(file_handler.readline().rstrip())
+        if line == "******" or line == '':
+            break
+        if line == "***":
+            continue
+        arr = line.split(' | ')
+        if len(arr) > 1:
+            key = arr[0]
+            all_vars.insert(0, key)
+            local_dict = {}
+            parents = arr[1].split(' ')
+            for i in range(2 ** len(parents)):
+                bn_table_line = str(file_handler.readline().rstrip())
+                bn_table_arr = bn_table_line.split(' ', 1)
+                local_dict[tuple(bn_table_arr[1].split(' '))] = float(bn_table_arr[0])
+            bayes_network[key] = [parents, local_dict]
+        else:
+            key = arr[0]
+            all_vars.insert(0, key)
+            local_dict = {}
+            prob_value = file_handler.readline().rstrip('\r\n')
+            if prob_value.isdigit():
+                local_dict[None] = float(prob_value)
+            else:
+                DECISION_VAR_LIST.append(key)
+                local_dict[None] = float(prob_value)
+            bayes_network[key] = [[], local_dict]
 
-        prob = re.findall(r"[-+]?\d*\.\d+|\d+", line)
-        if len(line.split(" | ")) > 1:
-            parents = []
-            TruthMaps = {}
-            parents.append(line.split(" | ")[1].split(" "))
-        elif len(line.split(" | ")) == 1 and line.find("|") == 0:
-            parents = []
-            TruthMaps = {}
-        elif line.find("*") != 0 and line.find(" | ") != 0 and prob != []:
-            prob = re.findall(r"[-+]?\d*\.\d+|\d+", line)
-            Ops = line.split(prob[0])[1].rstrip("\r\n").replace(" ", "", 1).split(" ")
-            Ops = tuple(Ops)
-            TruthMaps[Ops] = float(prob[0])
-        j = j + 1
-        i = i + 1
-        # facts[i]=line
-        # facts=[]
-        i = 0
-        # facts[i]=line
-parentArray = [parents, TruthMaps]
-bnObj[startLine.split(" | ")[0]] = [parentArray]
-print bnObj
+    while True:
+        line = str(file_handler.readline().rstrip())
+        if line == '':
+            break
+        arr = line.split(' | ')
+        if len(arr) > 1:
+            another_local_dict = {}
+            util_dependency_nodes = arr[1].split(' ')
+            utility.append(util_dependency_nodes)
+            for i in range(2 ** len(util_dependency_nodes)):
+                util_val_line = str(file_handler.readline().rstrip())
+                util_val_arr = util_val_line.split(' ', 1)
+                another_local_dict[tuple(util_val_arr[1].split(' '))] = float(util_val_arr[0])
+            utility.append(another_local_dict)
+
+
+  #  print queries
+    print bayes_network
+   # print all_vars
+  #  print utility
+    return queries, bayes_network, utility, all_vars
+
+read_file_data(open('C:\Users\Atreya\PycharmProjects\Bayesian_NW\HW3_samples_updated\HW3_samples\sample01.txt'))
