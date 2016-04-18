@@ -112,7 +112,6 @@ class BayesianNetwork:
         self.SortedVars=self.InputParser.ParseFile(fileName)
         self.BayesNet = self.InputParser.getBayesNetwork()
         self.QueriesList = self.InputParser.getQueriesforNetwork()
-        # = self.InputParser.getSortedVars()
 
     def getSelectedNodes(self, sortedVariables, networkDictionary, observedVariables):
         x = observedVariables.keys()
@@ -177,7 +176,6 @@ class BayesianNetwork:
             givenquery = self.QueriesList[i]
             if self.getProbabilityQueryType(givenquery) == 'P':
                 splitgivenquery = givenquery.split('(')
-                # queryfunction = splitgivenquery[0]
                 query_values = splitgivenquery[1]
                 query_vars = 0
                 Dictionary = {}
@@ -222,12 +220,8 @@ class BayesianNetwork:
                 for i in range(0, len(variables)):
                     Dictionary[variables[i]] = var_boolvalues[i]
 
-                bn = self.getSelectedNodes(self.SortedVars, self.BayesNet,
-                                           Dictionary)  # now create a network of only those nodes that we need to calculate the given query
+                bn = self.getSelectedNodes(self.SortedVars, self.BayesNet,Dictionary)
                 Prob = self.enumerateAll(X, bn, Dictionary)
-
-                # If the query is of the form P(X|e) i.e. flag is true, we have to divide "calculatedProbability" it by P(e).
-                # So now we create all the terms and network needed to calculate just P(e) and then perform the division
 
                 if flag == True:
                     X2 = ''
@@ -237,17 +231,15 @@ class BayesianNetwork:
                         evident_Dictionary[evidenceVariables[i]] = evidenceValue[i]
                     evidenceBN = self.getSelectedNodes(self.SortedVars, self.BayesNet, Dictionary)
                     quotient = self.enumerateAll(X2, evidenceBN, evident_Dictionary)
-                    probResult = Decimal(str(Prob / quotient)).quantize(
-                        Decimal('.01'))  # Rounding off to 2 decimal places
+                    probResult = Decimal(str(Prob / quotient)).quantize(Decimal('.01'))
                     print(probResult)
                 else:
-                    probResult = Decimal(str(Prob)).quantize(Decimal('.01'))  # Rounding off to 2 decimal places
+                    probResult = Decimal(str(Prob)).quantize(Decimal('.01'))
                     print(probResult)
 
             elif self.getProbabilityQueryType(givenquery) == 'E':
                 splitgivenquery = givenquery.split('(')
-                # queryfunction = splitgivenquery[0]                    #It can be 'P', 'EU' or 'MEU'
-                query_values = splitgivenquery[1]  # The part of the query after the opening bracket
+                query_values = splitgivenquery[1]
                 query_vars = 0
                 Dictionary = {}
                 evident_Dictionary = {}
@@ -257,7 +249,7 @@ class BayesianNetwork:
                 flag = False
                 variables.append('utility')
                 var_boolvalues.append(True)
-                if query_values.count('|') == 1:  # Extract the query variable appearing before the '|'
+                if query_values.count('|') == 1:
                     flag = True
                     b = query_values[:query_values.index('|')]
                     if b.find(",") != -1:
@@ -273,16 +265,16 @@ class BayesianNetwork:
                     else:
                         query_vars = 1
                         X = b[:b.index(' ')]
-                        variables.append(X)  # Query variable. eg. P(X|e)
+                        variables.append(X)
                         if b.find('+') != -1:
                             var_boolvalues.append(True)
                         else:
                             var_boolvalues.append(False)
-                    d = query_values[query_values.index('| ') + 2:]  # 'd' will store the part after the '|'
-                else:  # If '|' is not present in the given query
-                    d = query_values  # In this case, 'd' will be the entire query itself
+                    d = query_values[query_values.index('| ') + 2:]
+                else:
+                    d = query_values
                 e = d.split(', ')
-                for i in range(0, len(e)):  # Check for each variable whose value is already given in the query
+                for i in range(0, len(e)):
                     variables.append((e[i][:e[i].index(' =')]))
                     if e[i].find('+') != -1:
                         var_boolvalues.append(True)
@@ -290,13 +282,8 @@ class BayesianNetwork:
                         var_boolvalues.append(False)
                 for i in range(0, len(variables)):
                     Dictionary[variables[i]] = var_boolvalues[i]
-                bn = self.getSelectedNodes(self.SortedVars, self.BayesNet,
-                                           Dictionary)  # now create a network of only those nodes that we need to calculate the given query
-
+                bn = self.getSelectedNodes(self.SortedVars, self.BayesNet,Dictionary)
                 Prob = self.enumerateAll(X, bn, Dictionary)
-
-                # If the query is of the form P(X|e) i.e. flag is true, we have to divide "calculatedProbability" it by P(e).
-                # So now we create all the terms and network needed to calculate just P(e) and then perform the division
 
                 if flag == True:
                     X2 = ''
@@ -307,18 +294,16 @@ class BayesianNetwork:
                     evidenceBN = self.getSelectedNodes(self.SortedVars, self.BayesNet, evident_Dictionary)
                     quotient = self.enumerateAll(X2, evidenceBN, evident_Dictionary)
                     probResult = Decimal(str(Prob / quotient)).quantize(
-                        Decimal('.01'))  # Rounding off to 2 decimal places
+                        Decimal('.01'))
                     print(int(round(probResult)))
                 else:
-                    probResult = Decimal(str(Prob)).quantize(Decimal('.01'))  # Rounding off to 2 decimal places
+                    probResult = Decimal(str(Prob)).quantize(Decimal('.01'))
                     print(int(round(probResult)))
 
             elif self.getProbabilityQueryType(givenquery) == 'M':
                 splitgivenquery = givenquery.split('(')
-                queryfunction = splitgivenquery[0]  # It can be 'P', 'EU' or 'MEU'
-                # print(function)
-
-                query_values = splitgivenquery[1]  # The part of the query after the opening bracket
+                queryfunction = splitgivenquery[0]
+                query_values = splitgivenquery[1]
 
                 MEU_vars = []
                 query_vars = 0
@@ -331,7 +316,7 @@ class BayesianNetwork:
                 resultDictionary = {}
                 variables.append('utility')
                 var_boolvalues.append(True)
-                if query_values.count('|') == 1:  # Extract the query variable appearing before the '|'
+                if query_values.count('|') == 1:
                     flag = True
                     b = query_values[:query_values.index('|')]
                     if b.find(",") != -1:
@@ -346,15 +331,12 @@ class BayesianNetwork:
                                     var_boolvalues.append((False))
                             else:
                                 MEU_vars.append(b_split[i][:b_split[i].index(' ')])
-                                # print(variables)
-                                # print(queryVariables)
-
                     else:
 
                         query_vars = 1
                         X = b[:b.index(' ')]
                         if b.find('=') != -1:
-                            variables.append(X)  # Query variable. eg. P(X|e)
+                            variables.append(X)
                             if b.find('+') != -1:
                                 var_boolvalues.append(True)
                             else:
@@ -362,15 +344,15 @@ class BayesianNetwork:
                         else:
                             MEU_vars.append(X)
 
-                    d = query_values[query_values.index('| ') + 2:]  # 'd' will store the part after the '|'
+                    d = query_values[query_values.index('| ') + 2:]
 
 
-                else:  # If '|' is not present in the given query
-                    d = query_values  # In this case, 'd' will be the entire query itself
+                else:
+                    d = query_values
 
                 e = d.split(', ')
 
-                for i in range(0, len(e)):  # Check for each variable whose value is already given in the query
+                for i in range(0, len(e)):
                     if e[i].find('=') != -1:
                         variables.append((e[i][:e[i].index(' =')]))
                         if e[i].find('+') != -1:
@@ -400,7 +382,7 @@ class BayesianNetwork:
                         j = j + 1
 
                     bn = self.getSelectedNodes(self.SortedVars, self.BayesNet,
-                                               tempEvidence)  # now create a network of only those nodes that we need to calculate the given query
+                                               tempEvidence)
 
                     Prob = self.enumerateAll(X, bn, tempEvidence)
 
@@ -415,17 +397,15 @@ class BayesianNetwork:
                         quotient = self.enumerateAll(X2, evidenceBN, evident_Dictionary)
 
                         probResult = Decimal(str(Prob / quotient)).quantize(
-                            Decimal('.01'))  # Rounding off to 2 decimal places
-                        # print(int(round(finalResult)))
+                            Decimal('.01'))
 
 
                     else:
-                        probResult = Decimal(str(Prob)).quantize(Decimal('.01'))  # Rounding off to 2 decimal places
-                        # print(int(round(finalResult)))
+                        probResult = Decimal(str(Prob)).quantize(Decimal('.01'))
 
                     resultDictionary[probResult] = meuValue
 
-                # print(resultDictionary)
+
 
                 answer = max(resultDictionary.keys())
 
